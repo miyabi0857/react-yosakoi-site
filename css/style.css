@@ -148,7 +148,7 @@ a:hover { text-decoration: underline; }
   text-shadow: 0 0 24px rgba(208, 2, 27, 0.9), 0 0 60px rgba(208, 2, 27, 0.5);
 }
 
-.hero-logo-bang { color: var(--color-primary); }
+.hero-logo-bang { color: #fff; }
 
 .hero-tagline {
   font-size: 1.1rem;
