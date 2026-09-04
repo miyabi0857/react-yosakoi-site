@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活動報告一覧 ｜ ReAct!!</title>
+<meta name="description" content="よさこいチームReAct!!の活動報告一覧。年ごとの絞り込み・キーワード検索ができます。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&family=Poppins:ital,wght@0,700;0,800;1,800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== ヘッダー ==================== -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo-link">
+      <img src="assets/logo/logo-red-on-white.png" alt="ReAct!! 今がもっと好きになる" class="logo-img">
+    </a>
+    <nav class="site-nav">
+      <a href="index.html#about">チーム紹介</a>
+      <a href="index.html#activities">活動報告</a>
+      <a href="index.html#join">メンバー募集</a>
+      <a href="index.html#contact">演舞依頼</a>
+      <a href="https://x.com/react_yosakoi" target="_blank" rel="noopener">X</a>
+    </nav>
+    <a href="index.html#join" class="btn btn-pill">見学・加入はこちら</a>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="bi-heading">
+      <p class="bi-heading-en">Activity Report Archive</p>
+      <p class="bi-heading-ja">活動報告 一覧</p>
+    </div>
+
+    <!-- 年フィルター・キーワード検索（中身はjs/main.jsが自動で作ります） -->
+    <div class="archive-toolbar">
+      <div id="year-filter" class="year-filter"></div>
+      <div class="keyword-search-wrap">
+        <input type="text" id="keyword-search" class="keyword-search-input" placeholder="キーワードで検索（例：お祭りの名前など）">
+      </div>
+    </div>
+
+    <div id="blog-archive-list" class="blog-list">
+      <!-- ここにjs/main.jsがjs/posts-data.jsの全記事を自動で表示します -->
+    </div>
+
+    <p class="archive-back-link">
+      <a href="index.html#activities">トップページに戻る</a>
+    </p>
+  </div>
+</section>
+
+<!-- ==================== フッター ==================== -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <img src="assets/logo/logo-white-transparent.png" alt="ReAct!! 今がもっと好きになる" class="footer-logo-img">
+    <div class="footer-social">
+      <a href="https://www.instagram.com/react_yosakoi/" target="_blank" rel="noopener" class="footer-instagram">Instagram: @react_yosakoi</a>
+      <a href="https://x.com/react_yosakoi" target="_blank" rel="noopener" class="footer-instagram">X: @react_yosakoi</a>
+    </div>
+    <p class="footer-copyright">&copy; <span id="year"></span> ReAct!!</p>
+  </div>
+</footer>
+
+<script src="js/posts-data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -470,6 +470,69 @@ a:hover { text-decoration: underline; }
   color: var(--color-text-light);
 }
 
+/* ---------- 活動報告 一覧ページ（フィルター・検索） ---------- */
+.archive-toolbar {
+  max-width: 760px;
+  margin: 0 auto 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.year-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.year-filter-btn {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.year-filter-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.year-filter-btn.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.keyword-search-wrap {
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.keyword-search-input {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+}
+
+.keyword-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.archive-back-link {
+  text-align: center;
+  margin-top: 48px;
+}
+
 .activity-more {
   text-align: center;
   margin-top: 40px;
@@ -570,10 +633,18 @@ a:hover { text-decoration: underline; }
   margin: 0 auto 16px;
 }
 
+.footer-social {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .footer-instagram {
   display: inline-block;
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .footer-copyright {
