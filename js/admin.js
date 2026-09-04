@@ -1,6 +1,6 @@
 // ReAct!! 管理者ページ 補助スクリプト
 // GitHubの個人アクセストークンを使って、ブラウザから直接
-// このリポジトリのファイルを更新することで「投稿」を実現しています。
+// このリポジトリのファイルを更新することで「投稿・編集・削除」を実現しています。
 
 (function () {
   "use strict";
@@ -16,30 +16,39 @@
 
   var loginView = document.getElementById("login-view");
   var adminView = document.getElementById("admin-view");
+  var manageView = document.getElementById("manage-view");
   var tokenInput = document.getElementById("token-input");
   var loginBtn = document.getElementById("login-btn");
   var loginError = document.getElementById("login-error");
   var logoutBtn = document.getElementById("logout-btn");
   var postForm = document.getElementById("post-form");
+  var formTitle = document.getElementById("form-title");
+  var editingNote = document.getElementById("editing-note");
+  var cancelEditBtn = document.getElementById("cancel-edit-btn");
   var titleInput = document.getElementById("title-input");
   var dateInput = document.getElementById("date-input");
   var authorInput = document.getElementById("author-input");
   var bodyInput = document.getElementById("body-input");
   var imageInput = document.getElementById("image-input");
   var imagePreview = document.getElementById("image-preview");
+  var currentImageNote = document.getElementById("current-image-note");
   var submitBtn = document.getElementById("submit-btn");
   var submitStatus = document.getElementById("submit-status");
+  var postsSearchInput = document.getElementById("posts-search-input");
+  var postsListEl = document.getElementById("posts-list");
 
   if (!loginView) return; // このページ専用スクリプト（他ページでは何もしない）
 
   // 今日の日付をデフォルト値にする
   if (dateInput) {
-    var today = new Date();
-    dateInput.value = today.toISOString().slice(0, 10);
+    dateInput.value = new Date().toISOString().slice(0, 10);
   }
 
-  // ---------- ログイン状態の初期化 ----------
   var token = null;
+  var editingId = null; // nullなら新規投稿、値があればその記事を編集中
+  var allPostsCache = [];
+
+  // ---------- ログイン状態の初期化 ----------
   try {
     token = localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch (e) {
@@ -69,6 +78,7 @@
     try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch (e) {}
     token = null;
     adminView.hidden = true;
+    manageView.hidden = true;
     loginView.hidden = false;
     tokenInput.value = "";
   });
@@ -82,6 +92,8 @@
         token = candidateToken;
         loginView.hidden = true;
         adminView.hidden = false;
+        manageView.hidden = false;
+        loadPostsList();
         return true;
       })
       .catch(function (err) {
@@ -122,85 +134,221 @@
     reader.readAsDataURL(file);
   });
 
-  // ---------- 投稿処理 ----------
+  // ---------- 編集モードの開始・終了 ----------
+  function startEdit(post) {
+    editingId = post.id;
+    titleInput.value = post.title;
+    dateInput.value = post.date;
+    authorInput.value = post.author || "";
+    bodyInput.value = post.body;
+    imageInput.value = "";
+    imagePreview.hidden = true;
+    currentImageNote.hidden = !post.image;
+
+    formTitle.textContent = "活動報告を編集する";
+    submitBtn.textContent = "更新する";
+    editingNote.hidden = false;
+    setStatus("", false);
+
+    adminView.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function endEdit() {
+    editingId = null;
+    postForm.reset();
+    dateInput.value = new Date().toISOString().slice(0, 10);
+    imagePreview.hidden = true;
+    currentImageNote.hidden = true;
+
+    formTitle.textContent = "活動報告を投稿する";
+    submitBtn.textContent = "投稿する";
+    editingNote.hidden = true;
+  }
+
+  cancelEditBtn.addEventListener("click", endEdit);
+
+  // ---------- 投稿・更新処理 ----------
   postForm.addEventListener("submit", function (e) {
     e.preventDefault();
     submitBtn.disabled = true;
-    setStatus("投稿しています...", false);
+    setStatus(editingId ? "更新しています..." : "投稿しています...", false);
 
-    var newPost = {
-      id: dateInput.value + "-" + Math.random().toString(36).slice(2, 8),
-      date: dateInput.value,
-      author: authorInput.value.trim(),
-      title: titleInput.value.trim(),
-      body: bodyInput.value,
-      image: null
-    };
-
+    var inputTitle = titleInput.value.trim();
+    var inputDate = dateInput.value;
+    var inputAuthor = authorInput.value.trim();
+    var inputBody = bodyInput.value;
     var imageFile = imageInput.files[0];
 
-    (imageFile ? resizeImage(imageFile) : Promise.resolve(null))
-      .then(function (resizedDataUrl) {
-        if (!resizedDataUrl) return null;
-        var ext = "jpg";
-        var filename = newPost.id + "." + ext;
-        var base64 = resizedDataUrl.split(",")[1];
-        setStatus("写真をアップロードしています...", false);
-        return githubRequest(token, "contents/" + IMAGE_DIR + "/" + filename, {
-          method: "PUT",
-          body: {
-            message: "活動報告の写真を追加: " + filename,
-            content: base64,
-            branch: GITHUB_BRANCH
-          }
-        }).then(function () {
-          newPost.image = IMAGE_DIR + "/" + filename;
-        });
-      })
-      .then(function () {
+    (imageFile ? uploadImage(imageFile, inputDate) : Promise.resolve(undefined))
+      .then(function (uploadedImagePath) {
         setStatus("記事データを更新しています...", false);
-        return githubRequest(token, "contents/" + DATA_PATH, { method: "GET" });
-      })
-      .then(function (fileInfo) {
-        var currentPosts = [];
-        try {
-          currentPosts = JSON.parse(utf8Base64Decode(fileInfo.content));
-        } catch (e) {
-          currentPosts = [];
-        }
-        currentPosts.unshift(newPost);
+        return fetchCurrentPosts().then(function (result) {
+          var posts = result.posts;
 
-        return githubRequest(token, "contents/" + DATA_PATH, {
-          method: "PUT",
-          body: {
-            message: "活動報告を追加: " + newPost.title,
-            content: utf8Base64Encode(JSON.stringify(currentPosts, null, 2)),
-            sha: fileInfo.sha,
-            branch: GITHUB_BRANCH
+          if (editingId) {
+            var idx = posts.findIndex(function (p) { return p.id === editingId; });
+            if (idx === -1) throw new Error("post_not_found");
+            posts[idx].title = inputTitle;
+            posts[idx].date = inputDate;
+            posts[idx].author = inputAuthor;
+            posts[idx].body = inputBody;
+            if (uploadedImagePath !== undefined) posts[idx].image = uploadedImagePath;
+          } else {
+            posts.unshift({
+              id: inputDate + "-" + Math.random().toString(36).slice(2, 8),
+              date: inputDate,
+              author: inputAuthor,
+              title: inputTitle,
+              body: inputBody,
+              image: uploadedImagePath || null
+            });
           }
+
+          return writePosts(posts, result.sha,
+            (editingId ? "活動報告を編集: " : "活動報告を追加: ") + inputTitle);
         });
       })
       .then(function () {
-        setStatus("投稿しました！サイトへの反映まで1分ほどかかります。", true);
-        postForm.reset();
-        if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
-        imagePreview.hidden = true;
+        setStatus(editingId ? "更新しました！サイトへの反映まで1分ほどかかります。" : "投稿しました！サイトへの反映まで1分ほどかかります。", true);
+        endEdit();
         submitBtn.disabled = false;
+        loadPostsList();
       })
       .catch(function (err) {
         console.error(err);
-        setStatus("投稿に失敗しました。通信環境をご確認のうえ、もう一度お試しください。", false, true);
+        setStatus("処理に失敗しました。通信環境をご確認のうえ、もう一度お試しください。", false, true);
         submitBtn.disabled = false;
       });
   });
 
   function setStatus(msg, success, isError) {
+    if (!msg) {
+      submitStatus.hidden = true;
+      return;
+    }
     submitStatus.hidden = false;
     submitStatus.textContent = msg;
     submitStatus.className = "admin-status" + (success ? " is-success" : "") + (isError ? " is-error" : "");
   }
 
-  // ---------- 画像のリサイズ・圧縮（サイズを抑えて安定してアップロードするため） ----------
+  // ---------- 投稿一覧の読み込み・検索・削除 ----------
+  function loadPostsList() {
+    postsListEl.innerHTML = '<p class="admin-help">読み込み中...</p>';
+    fetchCurrentPosts()
+      .then(function (result) {
+        allPostsCache = sortPostsDesc(result.posts);
+        renderPostsList(allPostsCache);
+      })
+      .catch(function (err) {
+        console.error(err);
+        postsListEl.innerHTML = '<p class="admin-help">読み込みに失敗しました。</p>';
+      });
+  }
+
+  postsSearchInput.addEventListener("input", function () {
+    var keyword = postsSearchInput.value.trim().toLowerCase();
+    if (!keyword) {
+      renderPostsList(allPostsCache);
+      return;
+    }
+    var filtered = allPostsCache.filter(function (p) {
+      return p.title.toLowerCase().indexOf(keyword) !== -1 ||
+        p.body.toLowerCase().indexOf(keyword) !== -1 ||
+        p.date.indexOf(keyword) !== -1;
+    });
+    renderPostsList(filtered);
+  });
+
+  function renderPostsList(posts) {
+    postsListEl.innerHTML = "";
+    if (posts.length === 0) {
+      postsListEl.innerHTML = '<p class="admin-help">該当する記事がありません。</p>';
+      return;
+    }
+    posts.forEach(function (post) {
+      var row = document.createElement("div");
+      row.className = "admin-post-row";
+
+      var info = document.createElement("div");
+      info.className = "admin-post-row-info";
+      var titleLine = document.createElement("p");
+      titleLine.className = "admin-post-row-title";
+      titleLine.textContent = post.title;
+      var metaLine = document.createElement("p");
+      metaLine.className = "admin-post-row-meta";
+      metaLine.textContent = post.date + (post.author ? "　｜　" + post.author : "");
+      info.appendChild(titleLine);
+      info.appendChild(metaLine);
+
+      var actions = document.createElement("div");
+      actions.className = "admin-post-row-actions";
+
+      var editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "admin-row-btn";
+      editBtn.textContent = "編集";
+      editBtn.addEventListener("click", function () { startEdit(post); });
+
+      var deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "admin-row-btn admin-row-btn-danger";
+      deleteBtn.textContent = "削除";
+      deleteBtn.addEventListener("click", function () { deletePost(post); });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+
+      row.appendChild(info);
+      row.appendChild(actions);
+      postsListEl.appendChild(row);
+    });
+  }
+
+  function deletePost(post) {
+    var ok = window.confirm('「' + post.title + '」を削除します。元に戻せません。よろしいですか？');
+    if (!ok) return;
+
+    setStatus("削除しています...", false);
+    fetchCurrentPosts()
+      .then(function (result) {
+        var posts = result.posts.filter(function (p) { return p.id !== post.id; });
+        return writePosts(posts, result.sha, "活動報告を削除: " + post.title);
+      })
+      .then(function () {
+        setStatus("削除しました。サイトへの反映まで1分ほどかかります。", true);
+        if (editingId === post.id) endEdit();
+        loadPostsList();
+      })
+      .catch(function (err) {
+        console.error(err);
+        setStatus("削除に失敗しました。もう一度お試しください。", false, true);
+      });
+  }
+
+  function sortPostsDesc(posts) {
+    return posts.slice().sort(function (a, b) {
+      return new Date(b.date) - new Date(a.date);
+    });
+  }
+
+  // ---------- 画像のアップロード（リサイズ・圧縮つき） ----------
+  function uploadImage(file, dateForFilename) {
+    return resizeImage(file).then(function (resizedDataUrl) {
+      var filename = dateForFilename + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+      var base64 = resizedDataUrl.split(",")[1];
+      return githubRequest(token, "contents/" + IMAGE_DIR + "/" + filename, {
+        method: "PUT",
+        body: {
+          message: "活動報告の写真を追加: " + filename,
+          content: base64,
+          branch: GITHUB_BRANCH
+        }
+      }).then(function () {
+        return IMAGE_DIR + "/" + filename;
+      });
+    });
+  }
+
   function resizeImage(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -221,6 +369,31 @@
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- 記事データの取得・保存 ----------
+  function fetchCurrentPosts() {
+    return githubRequest(token, "contents/" + DATA_PATH, { method: "GET" }).then(function (fileInfo) {
+      var posts = [];
+      try {
+        posts = JSON.parse(utf8Base64Decode(fileInfo.content));
+      } catch (e) {
+        posts = [];
+      }
+      return { posts: posts, sha: fileInfo.sha };
+    });
+  }
+
+  function writePosts(posts, sha, message) {
+    return githubRequest(token, "contents/" + DATA_PATH, {
+      method: "PUT",
+      body: {
+        message: message,
+        content: utf8Base64Encode(JSON.stringify(posts, null, 2)),
+        sha: sha,
+        branch: GITHUB_BRANCH
+      }
     });
   }
 

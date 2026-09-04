@@ -68,9 +68,13 @@
     <!-- ========== ログイン後：投稿フォーム ========== -->
     <div id="admin-view" class="admin-card" hidden>
       <div class="admin-view-header">
-        <h3 class="admin-card-title">活動報告を投稿する</h3>
+        <h3 class="admin-card-title" id="form-title">活動報告を投稿する</h3>
         <button type="button" id="logout-btn" class="admin-logout-btn">ログアウト</button>
       </div>
+
+      <p id="editing-note" class="admin-editing-note" hidden>
+        この記事を編集しています。<button type="button" id="cancel-edit-btn" class="admin-cancel-edit-btn">新規投稿に戻る</button>
+      </p>
 
       <form id="post-form">
         <label class="admin-label" for="title-input">タイトル <span class="admin-required">必須</span></label>
@@ -88,11 +92,23 @@
         <label class="admin-label" for="image-input">写真（1枚まで・任意）</label>
         <input type="file" id="image-input" class="admin-input" accept="image/*">
         <img id="image-preview" class="admin-image-preview" hidden>
+        <p id="current-image-note" class="admin-note" hidden>※ 編集中の記事には既に写真が設定されています。新しい写真を選ぶと差し替わります（選ばなければそのままです）。</p>
 
         <button type="submit" id="submit-btn" class="btn btn-primary admin-btn-block">投稿する</button>
       </form>
 
       <p id="submit-status" class="admin-status" hidden></p>
+    </div>
+
+    <!-- ========== ログイン後：投稿の検索・削除・修正 ========== -->
+    <div id="manage-view" class="admin-card" hidden>
+      <h3 class="admin-card-title">投稿を管理する</h3>
+
+      <input type="text" id="posts-search-input" class="admin-input" placeholder="タイトル・本文をキーワード検索">
+
+      <div id="posts-list" class="admin-posts-list">
+        <p class="admin-help">読み込み中...</p>
+      </div>
     </div>
 
   </div>
