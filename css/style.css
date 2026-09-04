@@ -441,8 +441,18 @@ a:hover { text-decoration: underline; }
 .blog-post {
   background: #fff;
   border-radius: 12px;
-  padding: 28px 32px;
+  overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.blog-post-image {
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+}
+
+.blog-post-content {
+  padding: 28px 32px;
 }
 
 .blog-post-date {

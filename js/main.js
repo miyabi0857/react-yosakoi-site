@@ -57,6 +57,18 @@ document.addEventListener("DOMContentLoaded", function () {
     var card = document.createElement("article");
     card.className = "blog-post";
 
+    if (post.image) {
+      var imgEl = document.createElement("img");
+      imgEl.className = "blog-post-image";
+      imgEl.src = post.image;
+      imgEl.alt = post.imageAlt || post.title;
+      imgEl.loading = "lazy";
+      card.appendChild(imgEl);
+    }
+
+    var bodyWrap = document.createElement("div");
+    bodyWrap.className = "blog-post-content";
+
     var dateEl = document.createElement("p");
     dateEl.className = "blog-post-date";
     dateEl.textContent = formatDate(post.date);
@@ -69,9 +81,10 @@ document.addEventListener("DOMContentLoaded", function () {
     bodyEl.className = "blog-post-body";
     bodyEl.innerHTML = escapeHtml(post.body).replace(/\n/g, "<br>");
 
-    card.appendChild(dateEl);
-    card.appendChild(titleEl);
-    card.appendChild(bodyEl);
+    bodyWrap.appendChild(dateEl);
+    bodyWrap.appendChild(titleEl);
+    bodyWrap.appendChild(bodyEl);
+    card.appendChild(bodyWrap);
     return card;
   }
 
