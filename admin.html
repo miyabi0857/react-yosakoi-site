@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理者ログイン ｜ ReAct!!</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&family=Poppins:ital,wght@0,700;0,800;1,800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo-link">
+      <img src="assets/logo/logo-red-on-white.png" alt="ReAct!! 今がもっと好きになる" class="logo-img">
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">サイトに戻る</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section admin-section">
+  <div class="container admin-container">
+
+    <div class="bi-heading">
+      <p class="bi-heading-en">Admin</p>
+      <p class="bi-heading-ja">管理者ページ</p>
+    </div>
+
+    <!-- ========== ログイン前：トークン入力 ========== -->
+    <div id="login-view" class="admin-card">
+      <h3 class="admin-card-title">管理者ログイン</h3>
+      <p class="admin-help">
+        ここから活動報告（ブログ）を投稿できます。ログインには、GitHubの
+        「個人アクセストークン」を1回だけ発行して使います（パスワードのようなものです）。
+        取得方法は下の「トークンの作り方」を参考にしてください。
+      </p>
+
+      <label class="admin-label" for="token-input">GitHubトークン</label>
+      <input type="password" id="token-input" class="admin-input" placeholder="ghp_ から始まる文字列を貼り付け" autocomplete="off">
+      <button type="button" id="login-btn" class="btn btn-primary admin-btn-block">ログイン</button>
+      <p id="login-error" class="admin-error" hidden></p>
+
+      <details class="admin-details">
+        <summary>トークンの作り方（最初の1回だけ）</summary>
+        <ol class="admin-steps">
+          <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHubのトークン発行ページ</a>を開く（GitHubへのログインが必要です）</li>
+          <li>「Token name」に分かりやすい名前を入れる（例：ReAct!!サイト更新用）</li>
+          <li>「Repository access」で「Only select repositories」を選び、<code>react-yosakoi-site</code> を選択する</li>
+          <li>「Permissions」→「Repository permissions」→「Contents」を「Read and write」に変更する</li>
+          <li>画面下の「Generate token」を押す</li>
+          <li>表示された文字列（<code>github_pat_...</code>）をコピーして、上の入力欄に貼り付ける</li>
+        </ol>
+        <p class="admin-note">
+          ※ このトークンは、このサイト（react-yosakoi-site）だけに書き込める、限定された権限のものです。<br>
+          ※ トークンはお使いの端末のブラウザ内だけに保存され、他の場所には送信されません。<br>
+          ※ パスワード同様、他の人に見せたり、共有の端末に保存したままにしないよう注意してください。
+        </p>
+      </details>
+    </div>
+
+    <!-- ========== ログイン後：投稿フォーム ========== -->
+    <div id="admin-view" class="admin-card" hidden>
+      <div class="admin-view-header">
+        <h3 class="admin-card-title">活動報告を投稿する</h3>
+        <button type="button" id="logout-btn" class="admin-logout-btn">ログアウト</button>
+      </div>
+
+      <form id="post-form">
+        <label class="admin-label" for="title-input">タイトル <span class="admin-required">必須</span></label>
+        <input type="text" id="title-input" class="admin-input" placeholder="例：〇〇祭りに出演しました" required>
+
+        <label class="admin-label" for="date-input">日付 <span class="admin-required">必須</span></label>
+        <input type="date" id="date-input" class="admin-input" required>
+
+        <label class="admin-label" for="author-input">投稿担当者名</label>
+        <input type="text" id="author-input" class="admin-input" placeholder="例：山田（任意）">
+
+        <label class="admin-label" for="body-input">本文 <span class="admin-required">必須</span></label>
+        <textarea id="body-input" class="admin-input admin-textarea" rows="8" placeholder="活動の様子を書いてください" required></textarea>
+
+        <label class="admin-label" for="image-input">写真（1枚まで・任意）</label>
+        <input type="file" id="image-input" class="admin-input" accept="image/*">
+        <img id="image-preview" class="admin-image-preview" hidden>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary admin-btn-block">投稿する</button>
+      </form>
+
+      <p id="submit-status" class="admin-status" hidden></p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <img src="assets/logo/logo-white-transparent.png" alt="ReAct!! 今がもっと好きになる" class="footer-logo-img">
+    <p class="footer-copyright">&copy; <span id="year"></span> ReAct!!</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

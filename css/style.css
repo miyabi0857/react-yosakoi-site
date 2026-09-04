@@ -663,6 +663,14 @@ a:hover { text-decoration: underline; }
   margin: 0;
 }
 
+.footer-admin-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.7rem;
+  color: #555;
+}
+.footer-admin-link:hover { color: #999; }
+
 /* ---------- レスポンシブ（スマホ） ---------- */
 @media (max-width: 600px) {
   .header-inner { justify-content: center; text-align: center; }

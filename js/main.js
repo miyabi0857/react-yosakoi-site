@@ -1,7 +1,6 @@
 // ReAct!! 公式サイト 補助スクリプト
 
 // トップページの活動報告に表示する最新記事の件数
-// （この数を増減させると、トップページに表示される記事数が変わります）
 var RECENT_POSTS_COUNT = 3;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -11,25 +10,36 @@ document.addEventListener("DOMContentLoaded", function () {
     yearEl.textContent = new Date().getFullYear();
   }
 
-  var allPosts = (typeof REACT_POSTS !== "undefined") ? sortPostsDesc(REACT_POSTS) : [];
-
-  // トップページ：活動報告（直近数件＋もっと見るリンク）
   var listEl = document.getElementById("blog-list");
-  if (listEl) {
-    var recent = allPosts.slice(0, RECENT_POSTS_COUNT);
-    renderPosts(listEl, recent);
-
-    var moreLinkWrap = document.getElementById("blog-more-link-wrap");
-    if (moreLinkWrap && allPosts.length > RECENT_POSTS_COUNT) {
-      moreLinkWrap.hidden = false;
-    }
-  }
-
-  // 活動報告一覧ページ（年フィルター・キーワード検索つき）
   var archiveListEl = document.getElementById("blog-archive-list");
-  if (archiveListEl) {
-    initArchivePage(allPosts, archiveListEl);
-  }
+
+  if (!listEl && !archiveListEl) return;
+
+  fetch("js/posts-data.json")
+    .then(function (res) { return res.json(); })
+    .then(function (posts) {
+      var allPosts = sortPostsDesc(posts);
+
+      if (listEl) {
+        var recent = allPosts.slice(0, RECENT_POSTS_COUNT);
+        renderPosts(listEl, recent);
+
+        var moreLinkWrap = document.getElementById("blog-more-link-wrap");
+        if (moreLinkWrap && allPosts.length > RECENT_POSTS_COUNT) {
+          moreLinkWrap.hidden = false;
+        }
+      }
+
+      if (archiveListEl) {
+        initArchivePage(allPosts, archiveListEl);
+      }
+    })
+    .catch(function () {
+      var target = listEl || archiveListEl;
+      if (target) {
+        target.innerHTML = '<p class="blog-empty">記事の読み込みに失敗しました。時間をおいて再読み込みしてください。</p>';
+      }
+    });
 
   // ---------- 以下、内部で使う関数 ----------
 
@@ -61,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var imgEl = document.createElement("img");
       imgEl.className = "blog-post-image";
       imgEl.src = post.image;
-      imgEl.alt = post.imageAlt || post.title;
+      imgEl.alt = post.title;
       imgEl.loading = "lazy";
       card.appendChild(imgEl);
     }
@@ -71,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var dateEl = document.createElement("p");
     dateEl.className = "blog-post-date";
-    dateEl.textContent = formatDate(post.date);
+    dateEl.textContent = formatDate(post.date) + (post.author ? "　｜　" + post.author : "");
 
     var titleEl = document.createElement("h3");
     titleEl.className = "blog-post-title";
