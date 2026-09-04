@@ -598,35 +598,11 @@ a:hover { text-decoration: underline; }
   color: var(--color-text-light);
 }
 
-.contact-form-wrap {
-  max-width: 720px;
-  margin: 0 auto 32px;
-  background: var(--color-bg-alt);
-  border: 2px dashed #e3c9cc;
-  border-radius: 12px;
-  min-height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  text-align: center;
-}
-
-.contact-form-wrap iframe {
-  width: 100%;
-  min-height: 900px;
-  border: none;
-  border-radius: 8px;
-}
-
-.contact-form-placeholder {
-  color: var(--color-text-light);
-  margin: 0;
-  font-size: 0.9rem;
-}
-
 .contact-buttons {
-  text-align: center;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* ---------- フッター ---------- */
