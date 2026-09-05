@@ -2,6 +2,14 @@
    ReAct!! 管理者ページ（admin.html）専用スタイル
    ========================================================= */
 
+/* hidden属性を確実に効かせる。
+   下の方で .admin-editing-note などに display を指定しており、
+   そちらが hidden より優先されてしまうため、ここで打ち消しておく。
+   （これが無いと「この記事を編集しています」の帯が新規投稿時にも出てしまう） */
+[hidden] {
+  display: none !important;
+}
+
 .admin-section {
   min-height: 70vh;
 }
